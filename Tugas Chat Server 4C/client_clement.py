@@ -6,9 +6,12 @@ import sys
 from tkinter import filedialog as fd
 import os
 
+SEPARATOR = "<SEPARATOR>"
+
 class ChatApplication():
     def __init__(self):
         self.users = {}
+        self.filename =""
         self.users['clement'] = {'nama': 'Lionel Messi', 'negara': 'Argentina', 'password': 'surabaya', 'incoming': {},
                                'outgoing': {}}
         self.users['irsyad'] = {'nama': 'Jordan Henderson', 'negara': 'Inggris', 'password': 'surabaya',
@@ -124,14 +127,25 @@ class ChatApplication():
         self.messagebox.delete(0, END)
 
     def send_file_to_server(self):
-        self.s.send("FILE".encode())
-        self.s.send(str("client_" + os.path.basename(self.filename)).encode())
-        file = open(self.filename, "rb")
-        print("Send : ", self.filename)
-        data = file.read(1024)
-        while data:
-            self.s.send(data)
-            data = file.read(1024)
+        ukuran_file = os.path.getsize(self.filename)
+        # self.s.send("FILE".encode())
+        self.s.send(f"FILE{SEPARATOR}{self.filename}{SEPARATOR}{ukuran_file}".encode())
+        with open(self.filename, "rb") as f:
+            for data in f:
+                self.s.sendall(data)
+            # while True:
+            #     jumlah_bytes = f.read(1024)
+            #     if not jumlah_bytes:
+            #         break
+            #     self.s.sendall(jumlah_bytes)
+            # f.close()
+        # self.s.send(str("client_" + os.path.basename(self.filename)).encode())1
+        # file = open(self.filename, "rb")
+        # print("Send : ", self.filename)
+        # data = file.read(1024)
+        # while data:
+        #     self.s.send(data)
+        #     data = file.read(1024)
 
     def browseFile(self):
         self.filetypes = (

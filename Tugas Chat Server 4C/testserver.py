@@ -1,6 +1,7 @@
 import socket
 import threading
-
+import os
+SEPARATOR = "<SEPARATOR>"
 
 class ServerForChatroom:
     def __init__(self, addr):
@@ -21,15 +22,30 @@ class ServerForChatroom:
                 except:
                     is_connected = False
                     self.users.remove(client_data)
-                if(str(msg)=="FILE"):
-                    f = open('hasil.txt', 'wb')
-                    while True:
-                        msg = client_data[1].recv(self.msg_size)
-                        while (msg):
-                            print
-                            "Receiving..."
-                            f.write(msg)
-                            msg = client_data[1].recv(self.msg_size)
+                
+                data_kirim = str(msg).split(SEPARATOR)
+                print(data_kirim)
+                # print(data_kirim[0])
+                if(data_kirim[0]=="FILE"):
+                    nama_file = os.path.basename(data_kirim[1])
+                    ukuran_file = int(data_kirim[2])
+                    with open(nama_file, "wb") as f:
+                        while True:
+                            print("Menerima...")
+                            bytes_baca = client_data[1].recv(self.msg_size)
+                            if not bytes_baca:
+                                break
+                            f.write(bytes_baca)
+                        f.close()
+                    print("file berhasil terkirim")
+                    # f = open('hasil.txt', 'wb')
+                    # while True:
+                    #     msg = client_data[1].recv(self.msg_size)
+                    #     while (msg):
+                    #         print
+                    #         "Receiving..."
+                    #         f.write(msg)
+                    #         msg = client_data[1].recv(self.msg_size)
                 else:
                     msg = f"{client_data[0]} : {msg}"
 
