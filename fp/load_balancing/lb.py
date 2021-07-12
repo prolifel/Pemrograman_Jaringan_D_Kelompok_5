@@ -3,16 +3,14 @@ import time
 import sys
 import asyncore
 import logging
-
+import argparse
 
 class BackendList:
-    def __init__(self):
+    def __init__(self,nBackend):
         self.servers=[]
-        self.servers.append(('127.0.0.1',8889))
-        self.servers.append(('127.0.0.1',8000))
-        self.servers.append(('127.0.0.1',8001))
-        self.servers.append(('127.0.0.1',8002))
-        self.servers.append(('127.0.0.1',8003))
+        for i in nBackend:
+            print("backend port:", 8999+int(i))
+            self.servers.append(('127.0.0.1', 8999+int(i)))
 
         self.current=0
     def getserver(self):
@@ -53,13 +51,13 @@ class ProcessTheClient(asyncore.dispatcher):
         self.close()
 
 class Server(asyncore.dispatcher):
-    def __init__(self,portnumber):
+    def __init__(self,portnumber,nBackend):
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.set_reuse_addr()
         self.bind(('',portnumber))
         self.listen(5)
-        self.bservers = BackendList()
+        self.bservers = BackendList(nBackend)
         logging.warning("load balancer running on port {}" . format(portnumber))
 
     def handle_accept(self):
@@ -78,16 +76,18 @@ class Server(asyncore.dispatcher):
             handler.backend = backend
 
 
-def main():
-    portnumber=44444
-    try:
-        portnumber=int(sys.argv[1])
-    except:
-        pass
-    svr = Server(portnumber)
+def main(nBackend):
+    portnumber=4444
+    svr = Server(portnumber, nBackend)
     asyncore.loop()
 
 if __name__=="__main__":
-    main()
-
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-n", "--Number", help="Masukkan jumlah backend server")
+    args = parser.parse_args()
+    
+    if args.Number:
+        main(args.Number)
+    else:
+        print("Masukkan jumlah backend server! -h untuk help")
+        sys.exit()
