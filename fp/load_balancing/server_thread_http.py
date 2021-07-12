@@ -3,6 +3,7 @@ import socket
 import threading
 import time
 import sys
+import argparse
 import logging
 from http import HttpServer
 
@@ -43,18 +44,18 @@ class ProcessTheClient(threading.Thread):
 				pass
 		self.connection.close()
 
-
-
 class Server(threading.Thread):
-	def __init__(self):
+	def __init__(self, port):
 		self.the_clients = []
 		self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		threading.Thread.__init__(self)
+		self.port = int(port)
 
 	def run(self):
-		self.my_socket.bind(('0.0.0.0', 8889))
+		self.my_socket.bind(('0.0.0.0', self.port))
 		self.my_socket.listen(1)
+		print("Server berada pada port ", self.port)
 		while True:
 			self.connection, self.client_address = self.my_socket.accept()
 			logging.warning("connection from {}".format(self.client_address))
@@ -63,12 +64,18 @@ class Server(threading.Thread):
 			clt.start()
 			self.the_clients.append(clt)
 
-
-
-def main():
-	svr = Server()
+def main(port):
+	svr = Server(port)
 	svr.start()
 
 if __name__=="__main__":
-	main()
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-p", "--Port", help="Masukkan port")
+	args = parser.parse_args()
+	
+	if args.Port:
+		main(args.Port)
+	else:
+		print("Masukkan port! -h untuk help")
+		sys.exit()
 
