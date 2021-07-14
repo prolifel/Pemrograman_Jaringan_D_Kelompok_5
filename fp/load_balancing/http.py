@@ -1,8 +1,10 @@
 import sys
 import os.path
 import uuid
-from glob import glob
+from glob import glob, escape
 from datetime import datetime
+from pathlib import Path
+from urllib.parse import unquote
 
 class HttpServer:
 	def __init__(self):
@@ -53,56 +55,51 @@ class HttpServer:
 			if (method=='GET'):
 				object_address = j[1].strip()
 				return self.http_get(object_address, all_headers)
-			if (method=='POST'):
-				object_address = j[1].strip()
-				return self.http_post(object_address, all_headers)
 			else:
 				return self.response(400,'Bad Request','',{})
 		except IndexError:
 			return self.response(400,'Bad Request','',{})
+			
 	def http_get(self,object_address,headers):
-		files = glob('./*')
-		print(files)
-		thedir='./'
+		object_address = unquote(object_address)
+		print(f"ADDRESS : {object_address}")
+		files = glob('./*.txt')
+		for i in range(0, len(files)):
+			files[i] = Path(files[i])
+		dir=Path('./')
 		if (object_address == '/'):
-			return self.response(200,'OK','Ini Adalah web Server percobaan',dict())
-
-		if (object_address == '/video'):
-			return self.response(302,'Found','',dict(location='https://youtu.be/katoxpnTf04'))
-		if (object_address == '/santai'):
-			return self.response(200,'OK','santai saja',dict())
-
+			return self.response(200,'OK','ini server http',dict())
 
 		object_address=object_address[1:]
-		if thedir+object_address not in files:
+		print(dir / object_address)
+		if dir / object_address not in files:
 			return self.response(404,'Not Found','',{})
-		fp = open(thedir+object_address,'rb') #rb => artinya adalah read dalam bentuk binary
+		fp = open(dir/object_address,'rb') #rb => artinya adalah read dalam bentuk binary
 		#harus membaca dalam bentuk byte dan BINARY
 		isi = fp.read()
 		
-		fext = os.path.splitext(thedir+object_address)[1]
+		fext = os.path.splitext(dir/object_address)[1]
 		content_type = self.types[fext]
 		
 		headers={}
 		headers['Content-type']=content_type
 		
 		return self.response(200,'OK',isi,headers)
-	def http_post(self,object_address,headers):
-		headers ={}
-		isi = "kosong"
-		return self.response(200,'OK',isi,headers)
-		
-			 	
-#>>> import os.path
-#>>> ext = os.path.splitext('/ak/52.png')
+
 
 if __name__=="__main__":
 	httpserver = HttpServer()
-	d = httpserver.proses('GET testing.txt HTTP/1.0')
-	print(d)
-	d = httpserver.proses('GET donalbebek.jpg HTTP/1.0')
-	print(d)
-	#d = httpserver.http_get('testing2.txt',{})
-	#print(d)
-#	d = httpserver.http_get('testing.txt')
-#	print(d)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

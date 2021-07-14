@@ -1,9 +1,7 @@
 from socket import *
 import socket
 import threading
-import time
 import sys
-import argparse
 import logging
 from http import HttpServer
 
@@ -38,44 +36,42 @@ class ProcessTheClient(threading.Thread):
 						self.connection.sendall(hasil)
 						rcv=""
 						self.connection.close()
+						break
 				else:
 					break
 			except OSError as e:
 				pass
 		self.connection.close()
 
+
+
 class Server(threading.Thread):
-	def __init__(self, port):
-		self.the_clients = []
+	def __init__(self, port=9000):
 		self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.port = port
 		threading.Thread.__init__(self)
-		self.port = int(port)
 
 	def run(self):
 		self.my_socket.bind(('0.0.0.0', self.port))
 		self.my_socket.listen(1)
-		print("Server berada pada port ", self.port)
 		while True:
 			self.connection, self.client_address = self.my_socket.accept()
 			logging.warning("connection from {}".format(self.client_address))
 
 			clt = ProcessTheClient(self.connection, self.client_address)
-			clt.start()
-			self.the_clients.append(clt)
+			clt.start()	
 
-def main(port):
-	svr = Server(port)
-	svr.start()
+
+
+def main():
+	if len(sys.argv) > 1 :
+		svr = Server(int(sys.argv[1]))
+		svr.start()
+	else:
+		svr = Server()
+		svr.start()
 
 if __name__=="__main__":
-	parser = argparse.ArgumentParser()
-	parser.add_argument("-p", "--Port", help="Masukkan port")
-	args = parser.parse_args()
-	
-	if args.Port:
-		main(args.Port)
-	else:
-		print("Masukkan port! -h untuk help")
-		sys.exit()
+	main()
 
