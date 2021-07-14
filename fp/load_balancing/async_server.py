@@ -11,7 +11,7 @@ rcv = ""
 class ProcessTheClient(asyncore.dispatcher_with_send):
 	def handle_read(self):
 		global rcv
-		data = self.recv(1024)
+		data = self.recv(8192)
 		if data:
 			d = data.decode()
 			rcv = rcv + d
